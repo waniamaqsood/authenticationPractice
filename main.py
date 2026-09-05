@@ -1,31 +1,62 @@
-import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from dotenv import load_dotenv
-from supabase import create_client, Client
+from supabase import create_client
+import os
 
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-PORT = int(os.getenv("PORT", 8000))
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Supabase environment variables are missing")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
 
 
-@app.get("/")
-def home():
-    return {
-        "message": "Server is running and connected to Supabase"
-    }
+class SignUpRequest(BaseModel):
+    email: str
+    password: str
 
 
-if __name__ == "__main__":
-    import uvicorn
+class LogInRequest(BaseModel):
+    email: str
+    password: str
 
-    print("Server running and connected to Supabase")
-    uvicorn.run(app, host="127.0.0.1", port=PORT)
+
+@app.post("/auth/signup", status_code=201)
+def auth_signup(user: SignUpRequest):
+    if user.email is None or user.password is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Bad Request"
+        )
+
+    response = supabase.auth.sign_up({
+        "email": user.email,
+        "password": user.password
+    })
+
+    return response
+
+
+@app.post("/auth/login", status_code=200)
+def auth_login(user: LogInRequest):
+    if user.email is None or user.password is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Empty Fields"
+        )
+
+    try:
+        response = supabase.auth.sign_in_with_password({
+            "email": user.email,
+            "password": user.password
+        })
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "Invalid login credentials"}
+        )
+
+    return response
