@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from supabase import create_client
@@ -60,3 +60,35 @@ def auth_login(user: LogInRequest):
         )
 
     return response
+
+@app.get("/public/info")
+def public_info():
+    return {
+        "message": "Welcome stranger! This info is public."
+    }
+
+
+@app.get("/protected/profile")
+def protected_profile(authorization: str | None = Header(default=None)):
+
+    if authorization is None:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "Access token required"}
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "Access token required"}
+        )
+
+    token = authorization[7:].strip()
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "Access token required"}
+        )
+
+    return {"message": "Token presented"}
