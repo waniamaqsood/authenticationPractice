@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from supabase import create_client
@@ -13,19 +13,17 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
 
-
 class SignUpRequest(BaseModel):
     email: str
     password: str
-
 
 class LogInRequest(BaseModel):
     email: str
     password: str
 
-
 @app.post("/auth/signup", status_code=201)
 def auth_signup(user: SignUpRequest):
+
     if user.email is None or user.password is None:
         raise HTTPException(
             status_code=400,
@@ -39,9 +37,9 @@ def auth_signup(user: SignUpRequest):
 
     return response
 
-
 @app.post("/auth/login", status_code=200)
 def auth_login(user: LogInRequest):
+
     if user.email is None or user.password is None:
         raise HTTPException(
             status_code=400,
@@ -53,6 +51,7 @@ def auth_login(user: LogInRequest):
             "email": user.email,
             "password": user.password
         })
+
     except Exception:
         raise HTTPException(
             status_code=401,
@@ -67,8 +66,9 @@ def public_info():
         "message": "Welcome stranger! This info is public."
     }
 
-@app.get("/protected/profile")
-def protected_profile(authorization: str | None = Header(default=None)):
+def get_current_user(
+    authorization: str | None = Header(default=None)
+):
 
     if authorization is None:
         raise HTTPException(
@@ -81,7 +81,7 @@ def protected_profile(authorization: str | None = Header(default=None)):
             status_code=401,
             detail={"error": "Access token required"}
         )
-    
+
     token = authorization[7:].strip()
 
     if not token:
@@ -99,10 +99,20 @@ def protected_profile(authorization: str | None = Header(default=None)):
             detail={"error": "Invalid or expired token"}
         )
 
-    user = response.user
+    return response.user
+
+@app.get("/protected/profile")
+def protected_profile(
+    user=Depends(get_current_user)
+):
 
     return {
         "id": user.id,
         "email": user.email,
         "account_created": user.created_at
     }
+
+@app.post("/auth/logout", status_code=204)
+def auth_logout(user=Depends(get_current_user)):
+    supabase.auth.sign_out()
+    return
