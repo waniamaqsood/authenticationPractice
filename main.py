@@ -67,7 +67,6 @@ def public_info():
         "message": "Welcome stranger! This info is public."
     }
 
-
 @app.get("/protected/profile")
 def protected_profile(authorization: str | None = Header(default=None)):
 
@@ -82,7 +81,7 @@ def protected_profile(authorization: str | None = Header(default=None)):
             status_code=401,
             detail={"error": "Access token required"}
         )
-
+    
     token = authorization[7:].strip()
 
     if not token:
@@ -91,4 +90,19 @@ def protected_profile(authorization: str | None = Header(default=None)):
             detail={"error": "Access token required"}
         )
 
-    return {"message": "Token presented"}
+    try:
+        response = supabase.auth.get_user(token)
+
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "Invalid or expired token"}
+        )
+
+    user = response.user
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "account_created": user.created_at
+    }
