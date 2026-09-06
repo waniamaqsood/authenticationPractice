@@ -1,17 +1,20 @@
 from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from supabase import create_client
 import os
 
 load_dotenv()
-
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+print("SUPABASE_URL:", SUPABASE_URL)
+print("SUPABASE_KEY loaded:", bool(SUPABASE_KEY))
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
+security = HTTPBearer()
 
 class SignUpRequest(BaseModel):
     email: str
@@ -67,28 +70,9 @@ def public_info():
     }
 
 def get_current_user(
-    authorization: str | None = Header(default=None)
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-
-    if authorization is None:
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "Access token required"}
-        )
-
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "Access token required"}
-        )
-
-    token = authorization[7:].strip()
-
-    if not token:
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "Access token required"}
-        )
+    token = credentials.credentials
 
     try:
         response = supabase.auth.get_user(token)
