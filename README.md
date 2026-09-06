@@ -210,11 +210,8 @@ Save the final Swagger screenshot inside the repository, for example:
 docs/swagger-auth.png
 ```
 
-Then add it to this README:
+<img width="510" height="314" alt="Screenshot 2026-09-06 102043" src="https://github.com/user-attachments/assets/6a5d1865-9fb3-465e-85df-16ff9391127b" />
 
-```markdown
-![Swagger UI showing bearer authentication and protected profile endpoint](docs/swagger-auth.png)
-```
 
 The screenshot should show:
 
