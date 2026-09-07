@@ -40,7 +40,7 @@ authenticationPractice/
 └── README.md
 ```
 
-> The exact files may vary depending on the final project structure.
+> The project structure reflects the current implementation. Files may change as the project is extended.
 
 ## How Authentication Works
 
@@ -66,7 +66,7 @@ FastAPI
 Protected Route
 ```
 
-Supabase handles the user accounts, passwords, and token generation.
+Supabase handles user accounts, passwords, and token generation.
 
 The FastAPI application is responsible for extracting the bearer token, verifying it, and allowing or rejecting access to protected routes.
 
@@ -87,7 +87,7 @@ python -m venv venv
 
 Activate it on Windows:
 
-```powershell
+```bash
 venv\Scripts\activate
 ```
 
@@ -108,17 +108,17 @@ SUPABASE_KEY=your_supabase_anon_key
 
 Use `.env.example` as a template.
 
-> **Security:** Do not commit the `.env` file or real Supabase keys to GitHub.
+> **Security:** Never commit the `.env` file or real Supabase keys to GitHub.
 
 ## Run the API
 
-Start the FastAPI server with:
+Start the FastAPI development server:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-The API will run at:
+The API will be available at:
 
 ```text
 http://127.0.0.1:8000
@@ -134,11 +134,11 @@ http://127.0.0.1:8000/docs
 
 | Method | Endpoint             | Purpose                                 | Authentication  |
 | ------ | -------------------- | --------------------------------------- | --------------- |
-| `POST` | `/auth/signup`       | Create a new user account               | ❌ No            |
-| `POST` | `/auth/login`        | Authenticate a user and return tokens   | ❌ No            |
+| `POST` | `/auth/signup`       | Create a new user account               | ❌ None          |
+| `POST` | `/auth/login`        | Authenticate a user and return tokens   | ❌ None          |
 | `POST` | `/auth/logout`       | Log out the authenticated user          | 🔒 Bearer token |
 | `GET`  | `/protected/profile` | Return the authenticated user's profile | 🔒 Bearer token |
-| `GET`  | `/public/info`       | Return publicly accessible information  | ❌ No            |
+| `GET`  | `/public/info`       | Return publicly accessible information  | ❌ None          |
 
 ## Authentication
 
@@ -148,7 +148,7 @@ Protected endpoints require an access token in the HTTP `Authorization` header:
 Authorization: Bearer <access_token>
 ```
 
-The token is obtained from the login endpoint.
+The access token is obtained from the login endpoint.
 
 ### Example Login Response
 
@@ -172,7 +172,9 @@ Authorization: Bearer <access_token>
 
 A valid token returns the authenticated user's information.
 
-An absent, malformed, invalid, or expired token returns one of the following responses:
+An absent, malformed, invalid, or expired token returns a `401 Unauthorized` response.
+
+Example responses:
 
 ```json
 {
@@ -188,8 +190,6 @@ or:
 }
 ```
 
-with a `401 Unauthorized` status.
-
 ## Swagger UI
 
 The API includes interactive Swagger documentation at:
@@ -198,27 +198,20 @@ The API includes interactive Swagger documentation at:
 http://127.0.0.1:8000/docs
 ```
 
-The protected endpoints display a **lock icon** and support bearer-token authorization through Swagger's **Authorize** button.
+Protected endpoints display a **lock icon** and support bearer-token authorization through Swagger's **Authorize** button.
 
 After entering a valid access token, the `/protected/profile` endpoint can be executed directly from the browser.
 
 ### Swagger Screenshot
 
-Save the final Swagger screenshot inside the repository, for example:
-
-```text
-docs/swagger-auth.png
-```
-
-<img width="510" height="314" alt="Screenshot 2026-09-06 102043" src="https://github.com/user-attachments/assets/6a5d1865-9fb3-465e-85df-16ff9391127b" />
-
-
-The screenshot should show:
+The Swagger UI demonstrates:
 
 * The protected `/protected/profile` route
-* Its lock icon
+* The route's lock icon
 * The Swagger **Authorize** button
 * A successful response after authorization
+
+![Swagger UI showing protected API routes](docs/swagger-auth.png)
 
 ## Security
 
@@ -252,7 +245,7 @@ The API was tested using both **terminal requests** and **Swagger UI**.
 curl -i http://127.0.0.1:8000/public/info
 ```
 
-Expected:
+Expected response:
 
 ```text
 200 OK
@@ -264,7 +257,7 @@ Expected:
 curl -i http://127.0.0.1:8000/protected/profile
 ```
 
-Expected:
+Expected response:
 
 ```text
 401 Unauthorized
@@ -277,7 +270,7 @@ curl -i http://127.0.0.1:8000/protected/profile \
   -H "Authorization: Bearer <YOUR_ACCESS_TOKEN>"
 ```
 
-Expected:
+Expected response:
 
 ```text
 200 OK
@@ -287,4 +280,4 @@ Expected:
 
 This project demonstrates the difference between **authentication** and **authorization** and shows how a backend can use an external **Identity Provider** to securely manage users and verify access tokens.
 
-Instead of implementing password hashing or cryptography manually, the application delegates account and token management to **Supabase** and focuses on securely verifying tokens and protecting API routes.
+Rather than implementing password hashing or cryptography manually, the application delegates account and token management to **Supabase Auth**. The FastAPI application focuses on securely verifying tokens and protecting API routes.
