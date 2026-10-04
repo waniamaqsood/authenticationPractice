@@ -33,11 +33,12 @@ This project was built as part of the **FLYRANK Internship – Backend Track, We
 authenticationPractice/
 │
 ├── main.py
-├── database.py
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
-└── README.md
+├── README.md
+├── docs/
+│   └── swagger-auth.png
 ```
 
 > The project structure reflects the current implementation. Files may change as the project is extended.
@@ -176,17 +177,21 @@ An absent, malformed, invalid, or expired token returns a `401 Unauthorized` res
 
 Example responses:
 
+No `Authorization` header:
+
 ```json
 {
-  "error": "Access token required"
+  "detail": "Not authenticated"
 }
 ```
 
-or:
+Invalid or expired token:
 
 ```json
 {
-  "error": "Invalid or expired token"
+  "detail": {
+    "error": "Invalid or expired token"
+  }
 }
 ```
 
@@ -233,7 +238,8 @@ The project follows several basic security practices:
 | `201`  | Created      | Successful signup                  |
 | `204`  | No Content   | Successful logout                  |
 | `400`  | Bad Request  | Missing signup/login information   |
-| `401`  | Unauthorized | Missing, invalid, or expired token |
+| `401`  | Unauthorized | Wrong login credentials, or a missing, invalid or expired token |
+| `422`  | Unprocessable Entity | Missing or malformed signup/login fields (FastAPI request validation) |
 
 ## Testing
 

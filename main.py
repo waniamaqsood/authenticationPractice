@@ -6,10 +6,12 @@ from supabase import create_client
 import os
 
 load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-print("SUPABASE_URL:", SUPABASE_URL)
-print("SUPABASE_KEY loaded:", bool(SUPABASE_KEY))
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError(
+        "SUPABASE_URL and SUPABASE_KEY must be set (see .env.example)."
+    )
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
