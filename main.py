@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -6,7 +6,9 @@ from supabase import create_client
 import os
 
 load_dotenv()
+SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError(
@@ -14,6 +16,11 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     )
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+supabase_admin = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY
+)
 
 app = FastAPI()
 security = HTTPBearer()
@@ -100,5 +107,4 @@ def protected_profile(
 
 @app.post("/auth/logout", status_code=204)
 def auth_logout(user=Depends(get_current_user)):
-    supabase.auth.sign_out()
-    return
+    return Response(status_code=204)
