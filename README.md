@@ -86,7 +86,7 @@ There are no automated tests yet. Manual checks:
 
 ## Limitations
 
-- /auth/logout asks Supabase to end the caller’s own session. A token that was already issued may keep working until it expires.
+- /auth/logout validates the token and requests sign-out from Supabase. Session revocation was not confirmed in testing, so treat it as best-effort.
 - Login stores its session on one shared client. That’s fine for a demo, but not for a multi-user service.
 - Error handling is coarse. Signup has none (any Supabase error becomes a 500); login and token verification turn every exception, including a Supabase outage, into a 401.
 - `email` is not validated as an email address; there is no password policy, rate limiting, refresh-token flow, or role/permission model.
