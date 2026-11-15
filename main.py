@@ -8,7 +8,6 @@ import os
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError(
@@ -16,11 +15,6 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     )
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-supabase_admin = create_client(
-    SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY
-)
 
 app = FastAPI()
 security = HTTPBearer()
@@ -106,5 +100,14 @@ def protected_profile(
     }
 
 @app.post("/auth/logout", status_code=204)
-def auth_logout(user=Depends(get_current_user)):
-    return Response(status_code=204)
+def auth_logout(
+    user=Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    try:
+        supabase.auth.admin.sign_out(credentials.credentials, "local")
+    except Exception:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "Could not reach the auth provider to log out"}
+        )
